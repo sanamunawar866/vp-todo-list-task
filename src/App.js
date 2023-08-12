@@ -16,14 +16,15 @@ import {
 
 const style = {
   bg: `h-screen w-screen p-4 bg-gradient-to-r from-[#3f7bc2] to-[#1CB5E0]`,
-  container: `bg-slate-100 max-w-[600px] w-full m-auto rounded-md shadow-xl p-4`,
+  container: `bg-slate-100 max-w-[85%] w-full m-auto rounded-md shadow-xl p-4`,
   heading: `text-3xl font-bold text-center text-gray-800 p-2`,
   form: `flex justify-between w-full mt-4`,
-  input: `flex justify-between border p-2 mr-2 text-xl`,
+  input: `flex-grow justify-between border p-2 mr-2 text-xl w-3/5` ,
   datepicker: `flex justify-between border p-3 text-xl`,
   button: `border p-4 ml-2 bg-blue-500 text-slate-100`,
-  table: `w-full mt-4 border-collapse`,
+  table: `w-full mt-4 border-collapse table-auto w-80%`,
   th: `bg-gray-300 text-gray-800 font-semibold p-2 text-left`,
+  tbody: `w-full mt-4 border-collapse table-auto`,
   count: `text-center p-2 mt-4`,
 };
 
@@ -35,6 +36,8 @@ function App() {
   const [activeCount, setactiveCount] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
+  const [overdueCount, setOverdueCount] = useState(0);
+  
 
   const toggleComplete = async (todo) => {
     await updateDoc(doc(db, 'todos', todo.id), {
@@ -45,6 +48,7 @@ function App() {
   const deleteTodo = async (id) => {
     await deleteDoc(doc(db, 'todos', id));
   };
+  
 
   const createTodo = async (e) => {
     e.preventDefault();
@@ -96,6 +100,9 @@ function App() {
     if (filter === 'all') return true;
     if (filter === 'active') return !todo.completed;
     if (filter === 'completed') return todo.completed;
+    if (filter === 'overdue') {
+      return todo.deadline && !todo.completed && new Date(todo.deadline.toDate()) < new Date();
+    }
     return false;
   });
 
@@ -131,7 +138,7 @@ function App() {
               <th>Action</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className={style.tbody}>
             {filteredTodos.map((todo, index) => (
               <Todo
                 key={index}
@@ -141,15 +148,17 @@ function App() {
               />
             ))}
           </tbody>
+          
         </table>
 
         {todos.length < 1 ? null : (
           <p className={style.count}>{`
           All: ${totalCount} |
           Active: ${activeCount} | 
-          Completed: ${completedCount} 
+          Completed: ${completedCount} |
+          Overdue: ${overdueCount}
           `}</p>
-        )}    
+        )}
 
       </div>
     </div>
